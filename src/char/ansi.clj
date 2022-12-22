@@ -10,6 +10,7 @@
              :cyan "\u001B[36m"
              :white "\u001B[37m"})
 
-(defn to-color [r g b]
+(defn from-color
   "Truecolor ANSI escape code"
-  (str "\\x1b[38;2;" r ";" g ";" b "m"))
+  [r g b]
+  (str \u001b "[38;2;" r ";" g ";" b "m"))

@@ -6,26 +6,61 @@
    [java.awt.image BufferedImage]
    [java.awt Color]
    [javax.imageio ImageIO]
+   [javax.imageio.stream FileImageInputStream]
+   [javax.imageio ImageReader]
+   [javax.imageio IIOImage]
+   [java.util Iterator]
    [java.io File]))
 
+;; IO
 
-(defn file-in [filename]
+(defn file-in
+  "Attempts to load a file from disk and return a File object."
+  [filename]
   (try
-  ;; (File. filename)
   (^File io/file filename)
    (catch Exception e
      (println "File could not be read: " (.getMessage e)))))
 
-
-(defn decode-image [^File file]
-  (^BufferedImage ImageIO/read file))
-
-
-(defn get-format [file]
+(defn get-format
+  "Identifies a file extension from string."
+  [file]
   (last (split file #"\.")))
 
+;; Image
 
-(defn rec-frame [w h ^BufferedImage image]
+(defn decode-image
+  "Reads a File and returns a BufferdImage."
+  [^File file]
+  (^BufferedImage ImageIO/read file))
+
+;; Gif
+
+(defn new-stream
+  "Constructs and returns a new FileImageInputStream"
+  [file]
+  (new FileImageInputStream file))
+
+(defn gif-reader
+  "Returns a .gif ImageReader."
+  [stream]
+  (let [^ImageReader reader (-> ImageIO (.getImageReaders stream) (.next))]
+    (.setInput reader stream)
+    reader))
+
+(defn gif-decoder
+  "Returns an IIOImage iterator."
+  [^File file]
+  (let [^FileImageInputStream stream (new-stream file)
+        ^ImageReader reader (gif-reader stream)
+        ^Iterator iterator (.readAll reader)]
+    iterator))
+
+;; RGB frame
+
+(defn recursive--frame
+  "Reads 24-bit RGBA values of an image and returns a matrix of 8-bit R, G and B channels as vectors."
+  [w h ^BufferedImage image]
   (loop [x 0
          y 0
          matrix [[]]]
@@ -38,8 +73,9 @@
           (recur 0 (inc y) (conj matrix (vector rgb)))
           (recur (inc x) y (conj (pop matrix) (conj (peek matrix) rgb))))))))
 
-
-(defn get-frame [image]
+(defn get-frame
+  "Takes a BufferedImage and returns a matrix of R, G and B vectors."
+  [image]
   (let [width (.getWidth image)
         height (.getHeight image)]
-    (rec-frame width height image)))
+    (recursive--frame width height image)))

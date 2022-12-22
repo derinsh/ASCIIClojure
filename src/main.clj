@@ -5,7 +5,8 @@
 (defn -main
   "Generate and render an ASCII image of the provided file."
   [& args]
-  (let [filename (first args)]
+  (let [filename (first args)
+        param (= "color" (first (rest args)))]
     (if (>= 0 (count filename))
       (throw (AssertionError. "No filename provided"))
-      (play filename))))
+      (play filename param))))
