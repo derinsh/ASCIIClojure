@@ -19,18 +19,31 @@
       (newline))))
 
 (defn render-gif
-  "Renders ASCII images from gif by printing "
-  [iterator color]
-  (while (.hasNext iterator)
-    (let [^BufferedImage image (.next iterator)
+  "Renders ASCII images from gif by looping through an ImageFileReader and letting images by index.
+  Images are rendered as a matrix and printed row-wise and calls to sleep and ansi-clear are sent."
+  ;; There is a bug in GIFImageReader: Index 4096 out of bounds for length 4096
+  ;; This affects some gifs, alternative reader or patch is needed
+  [^com.sun.imageio.plugins.gif.GIFImageReader reader color]
+  (for [i (range (dec (.getNumImages reader true)))
+    :let [^BufferedImage image (.read reader i)
           frame (get-frame image)
           rendered-frame (if-not color
                            (char/render frame)
-                           (char/render-with-color frame))]
-      (doseq [row rendered-frame]
-        (run! print row)
-        (newline)
-        (Thread/sleep 100)))))
+                           (char/render-with-color frame))]]
+      rendered-frame))
+
+(defn play-gif
+  "Plays a gif by saving the rendered images with function `render-gif` in a vector and looping."
+  [^com.sun.imageio.plugins.gif.GIFImageReader reader color]
+  (let [images (render-gif reader color)]
+    (while true
+      (doseq [i (range (dec (count images)))]
+        (let [image (nth images i)]
+          (doseq [row image]
+            (run! print row)
+            (newline)))
+        (Thread/sleep 100)
+        (print (str \u001b \c))))))
 
 
 (defn play
@@ -46,7 +59,7 @@
           (render-image image (or color false)))
         (= format "gif")
         (let
-            [^java.util.Iterator iterator (gif-decoder file)]
-          (render-gif iterator (or color false)))
+            [^com.sun.imageio.plugins.gif.GIFImageReader reader (gif-decoder file)]
+          (play-gif reader (or color false)))
         :else (println "File not supported.")))
       "File could not be read."))

@@ -44,17 +44,15 @@
 (defn gif-reader
   "Returns a .gif ImageReader."
   [stream]
-  (let [^ImageReader reader (-> ImageIO (.getImageReaders stream) (.next))]
+  (let [^com.sun.imageio.plugins.gif.GIFImageReader reader (-> (ImageIO/getImageReaders stream) (.next))]
     (.setInput reader stream)
     reader))
 
 (defn gif-decoder
-  "Returns an IIOImage iterator."
+  "Returns a GIFImageReader."
   [^File file]
-  (let [^FileImageInputStream stream (new-stream file)
-        ^ImageReader reader (gif-reader stream)
-        ^Iterator iterator (.readAll reader)]
-    iterator))
+  (let [^FileImageInputStream stream (new-stream file)]
+    ^com.sun.imageio.plugins.gif.GIFImageReader (gif-reader stream)))
 
 ;; RGB frame
 
