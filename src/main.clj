@@ -1,18 +1,66 @@
 (ns main
   (:gen-class :main true)
-  (:require [media.play :refer [play]]))
+  (:require
+   [clojure.string :as s]
+   [media.play :as media :refer [play]]))
 
-(def help-line "Run the program with a filename and the argument 'color' to print in color.")
+(def help-line
+  "Run the program followed with a filename and optional arguments to produce an ASCII-art image.
+  Supported file formats: PNG, JPG, BMP and GIF\n
+  Arguments:\n
+  --color : will output the ASCII characters with ANSI rgb color codes matching the source image\n
+  --bt709 : will resample luminance according to the BT-709 color standard\n
+  --scale <number> : will scale the image to the specified number (default 1.0)\n
+  --out <filename> : will produce a text file containing the ASCII image (GIF not supported)\n
+  --help : show this help screen\n")
+
+(def default-options
+  {:color false :scale 1.0 :out false :help false :bt709 false})
+
+(defn command-parser [args]
+
+  (loop [args args
+         parsed default-options
+         errors []]
+
+    ;; Final : return parsed options and errors
+    (if-not (seq args)
+      [parsed errors]
+
+      ;; Parser
+      (if-let [arg (second (s/split (first args) #"\--"))]
+        (cond
+          (not (contains? parsed (keyword arg)))
+          (recur (rest args) parsed (conj errors (str "Argument not recognized: " (first args))))
+
+          (= arg "out")
+          (if (and (< 0 (count (second args))) (not (= "-" (first (second args)))))
+            (recur (rest (rest args)) (assoc parsed :out (second args)) errors)
+            (recur (rest args) parsed (conj errors "No valid output file provided.")))
+
+          (= arg "scale")
+          (let [scale (second args)
+                float (try (Float/parseFloat scale) (catch Exception e 0))]
+
+            (if (> float 0)
+              (recur (rest (rest args)) (assoc parsed :scale float) errors)
+              (recur (rest args) parsed (conj errors "Not a valid scale."))))
+
+          :else
+          (recur (rest args) (assoc parsed (keyword arg) true) errors))
+        (recur (rest args) parsed (conj errors (str "Argument not recognized: " (first args))))))))
 
 (defn -main
   "Generate and render an ASCII image of the provided file."
   [& args]
-  (let [first-arg (first args)
-        second-arg (first (rest args))
-        help? (= "help" first-arg)
-        color? (= "color" second-arg)]
-    (if help?
-      (println help-line)
-      (if (>= 0 (count first-arg))
-        (throw (AssertionError. "No filename or argument provided"))
-        (play first-arg color?)))))
+  (let [filename (first args)
+        commands (command-parser (rest args))
+        parsed (first commands)
+        errors (second commands)]
+
+    (if (seq errors)
+      (apply println errors)
+
+      (if (or (get parsed :help) (< (count filename) 0))
+        (println help-line)
+        (play filename (:color parsed) (:bt709 parsed) (:scale parsed) (:out parsed))))))

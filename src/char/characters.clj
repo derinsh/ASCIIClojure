@@ -17,14 +17,15 @@
         green (nth rgb 1)
         blue (nth rgb 2)]
     (if lum?
-      (/ (reduce + (map * luminance [red green blue])) 3)
+      (/ (reduce + (map * luminance [red green blue])) 1)
       (/ (+ red green blue) 3))))
 
 (defn get-character
   "Returns a character based on luminance."
-  [rgb]
-  (let [average (convert-rgb rgb false)
-        index (/ average 8.0)]
+  [rgb bt709?]
+  (let [average (convert-rgb rgb bt709?)
+        sample (Math/round (/ average 8.0))
+        index (if (< sample 1) 0 (dec sample))]
     (nth characters index)))
 
 (defn get-ansi
@@ -37,17 +38,17 @@
 
 (defn render-with-color
   "Creates a matrix of ANSI color codes and ASCII characters from a matrix of R, G and B vectors."
-  [frame]
+  [frame bt709?]
   (for [row frame]
     (map
      (fn [rgb]
-           (str " " (get-ansi rgb) (get-character rgb) " "))
+           (str " " (get-ansi rgb) (get-character rgb bt709?) " "))
          row)))
 
 (defn render
   "Creates a matrix of ASCII characters from a matrix of R, G and B vectors."
-  [frame]
+  [frame bt709?]
   (for [row frame]
     (map
-     (fn [rgb] (str " " (get-character rgb) " "))
+     (fn [rgb] (str " " (get-character rgb bt709?) " "))
          row)))

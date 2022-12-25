@@ -3,11 +3,12 @@
    [clojure.string :refer [split]]
    [clojure.java.io :as io])
   (:import
-   [java.awt.image BufferedImage]
+   [java.awt.image BufferedImage AffineTransformOp]
    [java.awt Color]
    [javax.imageio ImageIO]
    [javax.imageio.stream FileImageInputStream]
-   [java.io File]))
+   [java.io File]
+   [java.awt.geom AffineTransform]))
 
 ;; IO
 
@@ -21,21 +22,36 @@
 
 (defn get-format
   "Identifies a file extension from a path or filename string."
-  [file]
-  (last (split file #"\.")))
+  [filename]
+  (last (split filename #"\.")))
 
 ;; Image
 
+(defn scale-image
+  "Scales a `BufferedImage` by a float."
+  [^BufferedImage image scale]
+  (let [width (Math/round (* scale (.getWidth image)))
+        height (Math/round (* scale (.getHeight image)))
+        ^BufferedImage new (new BufferedImage width height (.getType image))
+        ^AffineTransform scale-instance (AffineTransform/getScaleInstance scale scale)
+        ^AffineTransformOp scale-op (new AffineTransformOp scale-instance AffineTransformOp/TYPE_BILINEAR)]
+    (.filter scale-op image new)
+    new))
+
 (defn decode-image
-  "Reads a file and returns a `BufferedImage`."
-  [^File file]
-  (^BufferedImage ImageIO/read file))
+  "Reads a file and returns a `BufferedImage`.
+  If scale is provided, return a scaled image."
+  [^File file scale]
+  (let [^BufferedImage image (ImageIO/read file)]
+    (if (= 1 (int scale))
+      image
+      (scale-image image scale))))
 
 ;; Gif
 
 (defn new-stream
   "Constructs and returns a new `FileImageInputStream` of a file."
-  [file]
+  [^File file]
   (new FileImageInputStream file))
 
 (defn gif-reader
@@ -49,7 +65,7 @@
   "Reads a gif file and returns a `GIFImageReader`."
   [^File file]
   (let [^FileImageInputStream stream (new-stream file)]
-    ^com.sun.imageio.plugins.gif.GIFImageReader (gif-reader stream)))
+    (gif-reader stream)))
 
 ;; RGB frame
 
@@ -63,22 +79,24 @@
   "Recursively reads 24-bit RGBA values of a `BufferedImage` and returns a frame as a matrix of each pixel as a vector containing 8-bit R, G and B channels."
   [^BufferedImage image]
 
-  (let [width (.getWidth image)
-        height (.getHeight image)]
+  (let [width (dec (.getWidth image))
+        height (dec (.getHeight image))]
 
    (loop [x 0
          y 0
-         frame [[]]]
+         frame []]
 
-    (if (and (= x (dec width)) (= y (dec height)))
+    (if (> y height)
       frame
 
       ;; .getRGB method of BufferedImage returns a 24-bit integer
       ;; add-pixel function decides where to add the pixel vector
       (let [rgba (.getRGB image x y)
             pixel (rgb-vector rgba)
-            add-pixel (if (= x (dec width))
-                              #(conj frame [%])
-                              #(conj (pop frame) (conj (peek frame) %)))]
+            add-pixel (if (= x 0)
+                              #(conj %1 [%2])
+                              #(conj (pop %1) (conj (peek %1) %2)))]
 
-          (recur 0 (inc y) (add-pixel pixel)))))))
+        (if (= x width)
+          (recur 0 (inc y) (add-pixel frame pixel))
+          (recur (inc x) y (add-pixel frame pixel))))))))
