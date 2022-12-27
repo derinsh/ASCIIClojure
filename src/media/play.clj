@@ -56,15 +56,11 @@
           gif-data (.getData gif-frame)
           width (.getWidth gif-frame)
           height (.getHeight gif-frame)
-          ;; frame (for [value gif-data]
-          ;;         (for [row (range (.getHeight gif-frame))]
-          ;;           (media.media/rgb-vector value)))
           ^BufferedImage image (new BufferedImage width height BufferedImage/TYPE_INT_ARGB)
           ^BufferedImage image (do
                                  (-> image
                                      (.setRGB 0 0 width height gif-data 0 width))
                                  image)
-          ;;^BufferedImage image (SwingFXUtils/fromFXImage (new WritableImage(^PixelBuffer<> new PixelBuffer (.getWidth frame) (.getHeight frame) (java.nio.IntBuffer/wrap (.getData frame)) (WritablePixelFormat/getIntArgbPreInstance))) nil)
           ^BufferedImage image (if-not scale image (scale-image image scale))
           frame (get-frame image)
           rendered-frame (if-not color
