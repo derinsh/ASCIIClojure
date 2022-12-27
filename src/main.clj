@@ -15,7 +15,7 @@
   --help : show this help screen\n")
 
 (def default-options
-  {:color false :scale 1.0 :out false :help false :bt709 false})
+  {:color false :scale false :out false :help false :bt709 false})
 
 (defn command-parser [args]
 

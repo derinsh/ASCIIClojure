@@ -18,7 +18,7 @@
     <url>https://github.com/derinsh/ASCIIClojure</url>
     <connection>scm:git:git://github.com/derinsh/ASCIIClojure.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/derinsh/ASCIIClojure.git</developerConnection>
-    <tag>f983d893a3100c4c5a8e11e6887a8e05553eb84d</tag>
+    <tag>028b2ae1621d9338bbdb7ad2e97ac7456037be7b</tag>
   </scm>
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -67,6 +67,21 @@
       <groupId>org.clojure</groupId>
       <artifactId>clojure</artifactId>
       <version>1.11.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>com.ibasco.gifreader</groupId>
+      <artifactId>gif-reader</artifactId>
+      <version>1.1.0</version>
     </dependency>
   </dependencies>
 </project>

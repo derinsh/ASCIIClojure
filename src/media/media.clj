@@ -8,7 +8,8 @@
    [javax.imageio ImageIO]
    [javax.imageio.stream FileImageInputStream]
    [java.io File]
-   [java.awt.geom AffineTransform]))
+   [java.awt.geom AffineTransform]
+   [com.ibasco.image.gif GifImageReader]))
 
 ;; IO
 
@@ -43,7 +44,7 @@
   If scale is provided, return a scaled image."
   [^File file scale]
   (let [^BufferedImage image (ImageIO/read file)]
-    (if (= 1 (int scale))
+    (if-not scale
       image
       (scale-image image scale))))
 
@@ -57,15 +58,16 @@
 (defn gif-reader
   "Takes a `FileImageInputStream` and returns a `GIFImageReader` containing the stream."
   [^FileImageInputStream stream]
-  (let [^com.sun.imageio.plugins.gif.GIFImageReader reader (-> (ImageIO/getImageReaders stream) (.next))]
-    (.setInput reader stream)
+  (let [^com.ibasco.image.gif.GifImageReader reader (new GifImageReader stream)]
     reader))
 
 (defn gif-decoder
   "Reads a gif file and returns a `GIFImageReader`."
   [^File file]
   (let [^FileImageInputStream stream (new-stream file)]
-    (gif-reader stream)))
+    ;;(gif-reader stream)
+    (^com.ibasco.image.gif.GifImageReader new GifImageReader file)
+    ))
 
 ;; RGB frame
 

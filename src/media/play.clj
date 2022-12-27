@@ -6,7 +6,10 @@
    [clojure.string :as s]
    [clojure.java.io])
   (:import
-   [java.awt.image BufferedImage]))
+   [java.awt.image BufferedImage]
+   ;;[javafx.embed.swing SwingFXUtils]
+   ;;[javafx.scene.image PixelBuffer WritableImage WritablePixelFormat]
+   ))
 
 (defn render-image
   "Renders an ASCII image from a `BufferedImage` by calling `render` and concatenating the rows into one string."
@@ -45,11 +48,24 @@
   ;; There is a bug in GIFImageReader: Index 4096 out of bounds for length 4096
   ;; This affects some gifs, alternative reader or patch is needed
   ;; Bug #2 cannot export to unnamed module
-  [^com.sun.imageio.plugins.gif.GIFImageReader gif-reader scale color bt709]
+  [gif-reader scale color bt709]
 
-  (for [i (range (.getNumImages gif-reader true))
+  (for [i (range (.getTotalFrames gif-reader))
 
-    :let [^BufferedImage image (if (= 1 (int scale)) (.read gif-reader i) (scale-image (.read gif-reader i) scale))
+    :let [gif-frame (.read gif-reader)
+          gif-data (.getData gif-frame)
+          width (.getWidth gif-frame)
+          height (.getHeight gif-frame)
+          ;; frame (for [value gif-data]
+          ;;         (for [row (range (.getHeight gif-frame))]
+          ;;           (media.media/rgb-vector value)))
+          ^BufferedImage image (new BufferedImage width height BufferedImage/TYPE_INT_ARGB)
+          ^BufferedImage image (do
+                                 (-> image
+                                     (.setRGB 0 0 width height gif-data 0 width))
+                                 image)
+          ;;^BufferedImage image (SwingFXUtils/fromFXImage (new WritableImage(^PixelBuffer<> new PixelBuffer (.getWidth frame) (.getHeight frame) (java.nio.IntBuffer/wrap (.getData frame)) (WritablePixelFormat/getIntArgbPreInstance))) nil)
+          ^BufferedImage image (if-not scale image (scale-image image scale))
           frame (get-frame image)
           rendered-frame (if-not color
                            (char/render frame bt709)
@@ -96,7 +112,7 @@
 
         (= format "gif")
 
-        (let [^com.sun.imageio.plugins.gif.GIFImageReader reader (gif-decoder file)]
+        (let [reader (gif-decoder file)]
           (if out
             "Output file cannot be used with GIF."
             (play-gif (render-gif reader scale color? bt709?))))
