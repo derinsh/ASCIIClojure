@@ -1,7 +1,7 @@
 (ns media.play
   (:require
    [media.media :refer
-    [get-frame get-format file-in scale-image decode-image gif-decoder]]
+    [get-frame get-format file-in scale-image decode-image gif-decoder image-from-array]]
    [char.characters :as char]
    [clojure.string :as s]
    [clojure.java.io])
@@ -56,11 +56,7 @@
           gif-data (.getData gif-frame)
           width (.getWidth gif-frame)
           height (.getHeight gif-frame)
-          ^BufferedImage image (new BufferedImage width height BufferedImage/TYPE_INT_ARGB)
-          ^BufferedImage image (do
-                                 (-> image
-                                     (.setRGB 0 0 width height gif-data 0 width))
-                                 image)
+          ^BufferedImage image (image-from-array gif-data width height)
           ^BufferedImage image (if-not scale image (scale-image image scale))
           frame (get-frame image)
           rendered-frame (if-not color

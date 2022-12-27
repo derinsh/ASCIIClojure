@@ -55,19 +55,24 @@
   [^File file]
   (new FileImageInputStream file))
 
-(defn gif-reader
-  "Takes a `FileImageInputStream` and returns a `GIFImageReader` containing the stream."
-  [^FileImageInputStream stream]
-  (let [^com.ibasco.image.gif.GifImageReader reader (new GifImageReader stream)]
-    reader))
+;; (defn gif-reader
+;;   "Takes a `FileImageInputStream` and returns a `GIFImageReader` containing the stream."
+;;   [^FileImageInputStream stream]
+;;   (let [^com.ibasco.image.gif.GifImageReader reader (new GifImageReader stream)]
+;;     reader))
 
 (defn gif-decoder
   "Reads a gif file and returns a `GIFImageReader`."
   [^File file]
   (let [^FileImageInputStream stream (new-stream file)]
-    ;;(gif-reader stream)
-    (^com.ibasco.image.gif.GifImageReader new GifImageReader file)
-    ))
+    (^com.ibasco.image.gif.GifImageReader new GifImageReader file)))
+
+(defn image-from-array
+  "Constructs a `BufferedImage` and initializes it with RGBA values from an IntBuffer array"
+  [data width height]
+  (let [^BufferedImage image (new BufferedImage width height BufferedImage/TYPE_INT_ARGB)]
+    (.setRGB image 0 0 width height data 0 width)
+    image))
 
 ;; RGB frame
 
