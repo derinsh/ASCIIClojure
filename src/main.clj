@@ -61,6 +61,6 @@
     (if (seq errors)
       (apply println errors)
 
-      (if (or (get parsed :help) (< (count filename) 0))
+      (if (or (get parsed :help) (< (count filename) 1))
         (println help-line)
         (play filename (:color parsed) (:bt709 parsed) (:scale parsed) (:out parsed))))))
