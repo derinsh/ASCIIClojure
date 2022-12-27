@@ -4,7 +4,7 @@
   <groupId>ASCIIClojure</groupId>
   <artifactId>ASCIIClojure</artifactId>
   <packaging>jar</packaging>
-  <version>0.1</version>
+  <version>1.0rc</version>
   <name>ASCIIClojure</name>
   <description>ASCII art generator</description>
   <url>https://github.com/derinsh/ASCIIClojure</url>
@@ -18,7 +18,7 @@
     <url>https://github.com/derinsh/ASCIIClojure</url>
     <connection>scm:git:git://github.com/derinsh/ASCIIClojure.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/derinsh/ASCIIClojure.git</developerConnection>
-    <tag>028b2ae1621d9338bbdb7ad2e97ac7456037be7b</tag>
+    <tag>ab3b627db8452c463fe5639b20458b1cf4168c87</tag>
   </scm>
   <build>
     <sourceDirectory>src</sourceDirectory>

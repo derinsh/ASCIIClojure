@@ -1,4 +1,4 @@
-(defproject ASCIIClojure "0.1"
+(defproject ASCIIClojure "1.0rc"
   :description "ASCII art generator"
   :url "https://github.com/derinsh/ASCIIClojure"
   :license {:name "Eclipse Public License - v 2.0"

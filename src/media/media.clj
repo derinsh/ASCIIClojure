@@ -55,12 +55,6 @@
   [^File file]
   (new FileImageInputStream file))
 
-;; (defn gif-reader
-;;   "Takes a `FileImageInputStream` and returns a `GIFImageReader` containing the stream."
-;;   [^FileImageInputStream stream]
-;;   (let [^com.ibasco.image.gif.GifImageReader reader (new GifImageReader stream)]
-;;     reader))
-
 (defn gif-decoder
   "Reads a gif file and returns a `GIFImageReader`."
   [^File file]

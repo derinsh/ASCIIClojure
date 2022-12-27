@@ -7,8 +7,6 @@
    [clojure.java.io])
   (:import
    [java.awt.image BufferedImage]
-   ;;[javafx.embed.swing SwingFXUtils]
-   ;;[javafx.scene.image PixelBuffer WritableImage WritablePixelFormat]
    ))
 
 (defn render-image
@@ -44,15 +42,12 @@
 
 
 (defn render-gif
-  "Returns ASCII images by looping through an ImageFileReader and letting images by index."
-  ;; There is a bug in GIFImageReader: Index 4096 out of bounds for length 4096
-  ;; This affects some gifs, alternative reader or patch is needed
-  ;; Bug #2 cannot export to unnamed module
-  [gif-reader scale color bt709]
+  "Returns a collection of ASCII images by looping through a GifImageReader and rendering frames."
+  [^com.ibasco.image.gif.GifImageReader gif-reader scale color bt709]
 
   (for [i (range (.getTotalFrames gif-reader))
 
-    :let [gif-frame (.read gif-reader)
+        :let [^com.ibasco.image.gif.GifFrame gif-frame (.read gif-reader)
           gif-data (.getData gif-frame)
           width (.getWidth gif-frame)
           height (.getHeight gif-frame)
@@ -104,7 +99,7 @@
 
         (= format "gif")
 
-        (let [reader (gif-decoder file)]
+        (let [^com.ibasco.image.gif.GifImageReader reader (gif-decoder file)]
           (if out
             "Output file cannot be used with GIF."
             (play-gif (render-gif reader scale color? bt709?))))
