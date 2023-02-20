@@ -6,7 +6,6 @@
    [java.awt.image BufferedImage AffineTransformOp]
    [java.awt Color]
    [javax.imageio ImageIO]
-   [javax.imageio.stream FileImageInputStream]
    [java.io File]
    [java.awt.geom AffineTransform]
    [com.ibasco.image.gif GifImageReader]))
@@ -14,7 +13,7 @@
 ;; IO
 
 (defn file-in
-  "Attempts to load a file from disk and return a `File` object."
+  "Attempts to load a file from disk and return a `File`."
   [filename]
   (try
   (^File io/file filename)
@@ -50,19 +49,13 @@
 
 ;; Gif
 
-(defn new-stream
-  "Constructs and returns a new `FileImageInputStream` of a file."
-  [^File file]
-  (new FileImageInputStream file))
-
 (defn gif-decoder
-  "Reads a gif file and returns a `GIFImageReader`."
+  "Reads a `File` and returns a `GIFImageReader`."
   [^File file]
-  (let [^FileImageInputStream stream (new-stream file)]
-    (^com.ibasco.image.gif.GifImageReader new GifImageReader file)))
+  (^com.ibasco.image.gif.GifImageReader new GifImageReader file))
 
 (defn image-from-array
-  "Constructs a `BufferedImage` and initializes it with RGBA values from an IntBuffer array"
+  "Constructs a `BufferedImage` and initialized with RGBA values from an `IntBuffer` array"
   [data width height]
   (let [^BufferedImage image (new BufferedImage width height BufferedImage/TYPE_INT_ARGB)]
     (.setRGB image 0 0 width height data 0 width)

@@ -6,8 +6,7 @@
    [clojure.string :as s]
    [clojure.java.io])
   (:import
-   [java.awt.image BufferedImage]
-   ))
+   [java.awt.image BufferedImage]))
 
 (defn render-image
   "Renders an ASCII image from a `BufferedImage` by calling `render` and concatenating the rows into one string."
@@ -22,15 +21,17 @@
              (str (apply str row) "\n")))))
 
 (defn write-image
-  "Writes and saves a rendered ASCII image to a text file."
+  "Writes and saves a rendered ASCII image to a text file.
+  Asks for user confirmation to overwrite if file already exists."
   [rendered-image ^java.io.File out]
-  (let [write-file (atom true)]
+
+  (let [write-file? (atom true)]
 
     (when (.exists out)
         (println "Overwrite existing file? y/n")
-        (let [resp (read-line)] (when-not (or (= (s/lower-case resp) "y") (= (s/lower-case resp) "yes")) (reset! write-file false))))
+        (let [resp (read-line)] (when-not (or (= (s/lower-case resp) "y") (= (s/lower-case resp) "yes")) (reset! write-file? false))))
 
-    (if write-file
+    (if write-file?
       (with-open [writer (clojure.java.io/writer out)]
         (.write writer rendered-image))
       (println "Will not write to existing file."))))
@@ -42,10 +43,10 @@
 
 
 (defn render-gif
-  "Returns a collection of ASCII images by looping through a GifImageReader and rendering frames."
+  "Returns a collection of ASCII images by looping through a `GifImageReader` and rendering the frames."
   [^com.ibasco.image.gif.GifImageReader gif-reader scale color bt709]
 
-  (for [i (range (.getTotalFrames gif-reader))
+  (for [_i (range (.getTotalFrames gif-reader))
 
         :let [^com.ibasco.image.gif.GifFrame gif-frame (.read gif-reader)
           gif-data (.getData gif-frame)
@@ -63,13 +64,12 @@
         (str (apply str row) "\n")))))
 
 (defn play-gif
-  "Plays a GIFImageReader by extracting and rendering images with function `render-gif` and looping through the vectors.
-  Sleeps between frames and sends an ANSI terminal clear command to simulate video."
+  "Plays a collection of rendered images."
   [images]
     ;; Main loop
     (while true
 
-      ;; Loop #1 vector of multiple images
+      ;; Looping through vector of multiple images
       (doseq [i (range (dec (count images)))]
          (println (nth images i))
 
@@ -87,8 +87,8 @@
     (let [format (get-format filename)]
 
       (cond
-        (or (= format "png") (= format "jpg") (= format "bmp"))
 
+        (or (= format "png") (= format "jpg") (= format "bmp"))
         (let [^BufferedImage image (decode-image file scale)
               rendered-image (render-image image color? bt709?)]
           (if out
@@ -97,13 +97,15 @@
               (println "Failed to write to output file " out "."))
             (print-image rendered-image)))
 
-        (= format "gif")
 
+        (= format "gif")
         (let [^com.ibasco.image.gif.GifImageReader reader (gif-decoder file)]
           (if out
             "Output file cannot be used with GIF."
             (play-gif (render-gif reader scale color? bt709?))))
 
-        :else (println "File format not recognized or not supported.")))
 
-      "File could not be read."))
+        :else
+        (println "File format not recognized or not supported.")))
+
+    "File could not be read."))

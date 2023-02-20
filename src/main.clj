@@ -23,8 +23,8 @@
          parsed default-options
          errors []]
 
-    ;; Final : return parsed options and errors
-    (if-not (seq args)
+    ;; When no args remain, return parsed options and errors if any
+    (if (empty? args)
       [parsed errors]
 
       ;; Parser
@@ -40,7 +40,7 @@
 
           (= arg "scale")
           (let [scale (second args)
-                float (try (Float/parseFloat scale) (catch Exception e 0))]
+                float (try (Float/parseFloat scale) (catch Exception _e 0))]
 
             (if (> float 0)
               (recur (rest (rest args)) (assoc parsed :scale float) errors)
@@ -58,8 +58,12 @@
         parsed (first commands)
         errors (second commands)]
 
+    ;; If parser returned errors, print errors and quit
+
     (if (seq errors)
       (apply println errors)
+
+      ;; If no errors, start the program or show help if requested by user or filename is absent
 
       (if (or (get parsed :help) (< (count filename) 1))
         (println help-line)
